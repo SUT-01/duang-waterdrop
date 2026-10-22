@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="color-scheme" content="dark"><meta name="description" content="开局十滴水，连爆赚补给。20关水滴连锁挑战，支持手机触控与本机存档。"><title>DUANG! · 十滴挑战</title><style>
+    :root {
+      color-scheme: dark;
+      --bg: #071623;
+      --card: #102839;
+      --ink: #e5f8ff;
+      --muted: #8ab1c3;
+      --cyan: #74e6fd;
+      --blue: #1692c7;
+      --edge: rgba(153,222,250,.14);
+    }
+    * {box-sizing:border-box;}
+    html,body {margin:0; min-height:100%;}
+    body {
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      -webkit-font-smoothing:antialiased;
+      background: radial-gradient(ellipse 80% 65% at 50% -8%,#18455a 0%,#0b2334 42%,#071623 100%);
+      color:var(--ink);
+    }
+    .app {max-width:730px; margin:0 auto; padding:19px 16px 30px;}
+    .top {display:flex; justify-content:space-between; align-items:center; gap:18px; padding:0 3px 17px;}
+    .brand {display:flex; align-items:center; gap:11px;}
+    .brand-icon {width:45px;height:45px; border-radius:14px; background:linear-gradient(145deg,#205372,#0f3147); border:1px solid #326b83; display:grid; place-items:center; box-shadow:0 8px 24px #00111a50, inset 0 1px #a7ebff25;}
+    .brand-icon svg {width:24px;height:28px; filter:drop-shadow(0 0 6px #38c8fd90);}
+    .brand-title {font-size:27px; line-height:1; font-weight:950; letter-spacing:.06em; color:#ecfbff;}
+    .brand-title span {color:#74e8ff;}
+    .brand-sub {font-size:11px;letter-spacing:.12em;margin-top:6px;color:#7baec2;}
+    button {font:inherit; cursor:pointer; -webkit-tap-highlight-color:transparent;}
+    button:focus-visible {outline:2px solid #86e9ff;outline-offset:3px;}
+    button:disabled {opacity:.34; cursor:not-allowed;}
+    .sound-btn {display:flex; align-items:center; gap:7px; background:#173344; color:#a8e4f5; border:1px solid #2b5263; padding:9px 12px; border-radius:12px; font-weight:750; font-size:12px;}
+    .sound-btn:hover:not(:disabled) {background:#22475b;}
+    .panel {border:1px solid #2a526630; background:linear-gradient(155deg,#173746cc,#102837ed 55%,#0e2636);border-radius:25px;padding:17px; box-shadow:0 24px 80px #00000024, inset 0 1px 0 #ffffff0c;}
+    .heading {display:flex;align-items:center;justify-content:space-between; gap:9px; padding:2px 2px 15px;}
+    .heading h2 {font-size:19px; font-weight:850; margin:0 0 5px;letter-spacing:.01em;}
+    .heading p {margin:0;color:#86aebe;font-size:12px;line-height:1.6;}
+    .level-tag {flex-shrink:0; color:#95edff; background:#0a3a4b; border:1px solid #2a6881; border-radius:10px;padding:7px 10px;font-size:11px;font-weight:850;letter-spacing:.03em;}
+    .tabs {display:flex;gap:8px;overflow-x:auto;padding:1px 1px 13px; scrollbar-width:none;}
+    .tabs::-webkit-scrollbar {display:none;}
+    .level-tab {border:1px solid #315365; border-radius:11px; background:#132d3e;color:#8db9ca; padding:10px 12px; white-space:nowrap;font-size:12px;font-weight:800;min-width:104px;transition:background .18s,border-color .18s;}
+    .level-tab.active {background:#17485a; color:#c4f9ff;border-color:#46c6ec;box-shadow:inset 0 1px 0 #a6f8ff2b,0 0 14px #03a2d525;}
+    .level-tab .done {color:#72e7bb;}
+    .stats {display:grid; grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:13px;}
+    .stat {background:#091d2bb3;border:1px solid #2c51625b;border-radius:12px;padding:10px 12px;min-width:0;}
+    .stat-label {font-size:11px;color:#84aab9;margin-bottom:3px;letter-spacing:.03em;}
+    .stat-value {display:flex;align-items:baseline;gap:5px;line-height:1.1;font-size:23px;font-weight:850;font-variant-numeric:tabular-nums;color:#ebfbff;}
+    .stat-value em {font-size:11px;font-style:normal;font-weight:650;color:#84aab9;}
+    .stat .accent {color:#81ebff;}
+    .board-wrap {position:relative;border:1px solid #47758b80;border-radius:18px; padding:7px;overflow:hidden; background:radial-gradient(circle at 50% 40%,#16455d,#0a2336 80%);box-shadow:inset 0 0 27px #67d9ff10,0 14px 32px #0004;}
+    canvas#game {display:block;width:100%;height:auto;aspect-ratio:1;touch-action:manipulation;cursor:crosshair;border-radius:12px;}
+    .hint-strip {display:flex;justify-content:space-between;gap:12px;align-items:center;padding:11px 6px 0;color:#7fa9ba;font-size:12px;min-height:34px;}
+    .hint-strip strong {color:#9eebfc;font-weight:800;}
+    .actions {display:grid;grid-template-columns:1fr 1fr 1.15fr;gap:9px;margin-top:12px;}
+    .action {color:#d5eef7;background:linear-gradient(180deg,#203f50,#163142);border:1px solid #385c70;border-radius:12px;padding:13px 5px;font-size:13px;font-weight:800;transition:transform .1s,background .15s;}
+    .action:active:not(:disabled) {transform:translateY(1px) scale(.992);}
+    .action:hover:not(:disabled) {background:#285169;}
+    .action.primary {background:linear-gradient(145deg,#7ef1ff,#40bdde); color:#06334d; border:1px solid #8af0fe; box-shadow:0 4px 18px #20bbf832;}
+    .action.primary:hover:not(:disabled) {background:#9cf6ff;}
+    .rules {display:flex;justify-content:space-between;gap:12px;align-items:center; margin-top:15px;padding:12px 1px 0; border-top:1px solid #31546966; flex-wrap:wrap;}
+    .rule-desc {font-size:11px;color:#86acbd;line-height:1.75;}
+    .bubbles {display:flex;gap:10px; align-items:flex-end; flex-shrink:0;padding:3px 0;}
+    .bubble {border-radius:50%;display:inline-block;flex-shrink:0;position:relative; background:radial-gradient(circle at 31% 23%,#fff 0%,#c9ffff 8%,#65e5ff 31%,#1ba2d5 66%,#0b4d89 100%);border:1px solid #78def9;box-shadow:inset -2px -3px 5px #092f5788,0 2px 5px #04d2ff24;}
+    .bubble:before {content:"";position:absolute;top:14%;left:20%;width:35%;height:16%;border-radius:50%; background:#fff9;transform:rotate(-32deg);}
+    .bubble:nth-child(1){width:12px;height:12px;}
+    .bubble:nth-child(2){width:18px;height:18px;}
+    .bubble:nth-child(3){width:24px;height:24px;}
+    .bubble:nth-child(4){width:31px;height:31px;}
+    .overlay {position:absolute;inset:7px; display:none;align-items:center;justify-content:center;border-radius:12px; background:#071c2cbb;backdrop-filter:blur(4px);text-align:center;padding:22px;z-index:2;}
+    .overlay.visible {display:flex;}
+    .result {animation:enter .24s cubic-bezier(.2,1,.3,1);}
+    @keyframes enter {from{opacity:0;transform:translateY(10px) scale(.96)}to{opacity:1;transform:translateY(0) scale(1)}}
+    .result-mark {font-size:42px;line-height:1;margin-bottom:8px;}
+    .result h3 {font-size:30px;margin:3px 0 9px;font-weight:900;letter-spacing:.04em;color:#a2f7ff;text-shadow:0 0 18px #41d7ec6b;}
+    .result p {font-size:14px;color:#dbf8ff;margin:0 0 21px;line-height:1.7;}
+    .result-buttons {display:flex;justify-content:center;gap:10px;}
+    .result-buttons button {border-radius:11px;padding:11px 16px;font-weight:850;font-size:13px; border:1px solid #4a889e;background:#204a60;color:#e9fbff;}
+    .result-buttons .go {background:#75e3fa;color:#06314a;border-color:#b2f8ff;}
+    footer {font-size:11px;color:#5e8696;text-align:center;margin:14px 0 0;line-height:1.5;}
+    @media(max-width:520px) {
+      .app {padding:12px 9px 24px;}
+      .panel {padding:10px;border-radius:17px;}
+      .heading {padding:6px 3px 12px;}
+      .heading h2{font-size:16px;}
+      .stats{gap:6px;}
+      .stat{padding:9px 7px;}
+      .stat-label{font-size:10px;}
+      .stat-value{font-size:21px;}
+      .actions {gap:6px;}
+      .action {font-size:12px;padding:11px 5px;}
+      .board-wrap {padding:4px;border-radius:13px;}
+      .overlay {inset:4px;}
+      .hint-strip {font-size:11px;}
+    }
+    @media(prefers-reduced-motion:reduce) { .result {animation:none;} }
+
+.app{max-width:610px;padding-top:22px}.panel{padding:16px}.brand-sub{letter-spacing:.08em}.heading{padding-bottom:14px}.stats{grid-template-columns:1.2fr 1fr 1fr}.stat-value{font-size:25px}.stat.low .stat-value{color:#ffac9b}.stat.low{border-color:#b56254}.bank-meter{display:flex;gap:4px;flex-wrap:wrap;padding:4px 3px 13px;align-items:center;min-height:24px}.bank-dot{width:9px;height:13px;background:#7be8ff;border-radius:60% 50% 55% 55%;transform:rotate(35deg);box-shadow:0 0 6px #4cdff344}.bank-dot.spent{background:#244051;box-shadow:none}.bank-extra{color:#a6eeff;font-size:11px;margin-left:7px}.journey{display:flex;gap:4px;padding:0 2px 12px}.journey span{height:3px;flex:1;background:#264353;border-radius:3px}.journey span.done{background:#67b8a8}.journey span.current{background:#8be9ff;box-shadow:0 0 7px #4cdfff60}.actions{grid-template-columns:1.1fr 1fr 1.2fr}.rules{display:block}.rules summary{cursor:pointer;font-size:12px;color:#acddeb;font-weight:700;list-style:none;display:flex;justify-content:space-between}.rules summary::after{content:'＋';color:#7bc9e0}.rules[open] summary::after{content:'−'}.rule-list{padding-left:18px;font-size:12px;color:#a1bdca;line-height:1.9;margin-bottom:5px}.rule-list strong{color:#d8f5ff}.rule-note{font-size:11px;line-height:1.7;color:#7c9eaf}.meta-row{display:flex;justify-content:space-between;font-size:11px;color:#88acbc;margin:13px 2px 0}.sound-btn{white-space:nowrap}.result h3{font-size:27px}.result p{font-size:13px}.result-buttons{flex-wrap:wrap}.result-mark{color:#a1f5ff;font-size:35px}.dialog{position:fixed;inset:0;z-index:5;background:#03131edc;backdrop-filter:blur(8px);display:none;place-items:center;padding:24px}.dialog.visible{display:grid}.dialog-card{background:#102f41;border:1px solid #38617a;border-radius:22px;padding:25px;max-width:360px;box-shadow:0 25px 70px #0006}.dialog-card h2{font-size:21px;margin:0 0 12px}.dialog-card p{font-size:13px;line-height:1.8;color:#b4d2e0}.dialog-card .result-buttons{margin-top:22px}.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);padding:11px 17px;background:#173c4f;border:1px solid #538498;border-radius:12px;z-index:6;font-size:12px;color:#d4f4ff;max-width:90vw;opacity:0;pointer-events:none;transition:opacity .2s}.toast.visible{opacity:1}.hint-strip{align-items:flex-start}.hint-strip>span:first-child{max-width:74%;line-height:1.6}.hint-strip>span:last-child{white-space:nowrap;line-height:1.6}canvas#game:focus-visible{outline:2px solid #9cecff;outline-offset:-3px}footer{line-height:1.9}button{min-height:40px}.level-tag{min-width:70px;text-align:center}@media(max-width:520px){.app{padding:12px 9px 20px}.panel{padding:11px}.stat-value{font-size:23px}.brand-title{font-size:25px}.heading h2{font-size:17px}.heading p{font-size:11px}.actions{gap:6px}.action{font-size:11px}.meta-row{font-size:10px}.bank-dot{width:8px;height:11px}.result h3{font-size:25px}}
+
+/* A quiet visual key: growth is communicated by volume, never labels on drops. */
+.growth-guide{display:flex;align-items:center;justify-content:center;gap:16px;margin:18px 0 4px;color:#8db7c6;font-size:11px}
+.growth-drops{display:flex;align-items:center;gap:8px;height:34px}
+.growth-drops i{display:block;position:relative;border-radius:47% 50% 46% 48%;background:radial-gradient(ellipse at 30% 24%,#f1ffff 0%,#aaf3fa 22%,#51d4e2 48%,#1aaccc 72%,#095679 100%);box-shadow:inset -1px -2px 2px #084d7b66,inset 0 -2px 1px #97ffe568,0 4px 4px #00131e60;border:1px solid #b1edf9a1}
+.growth-drops i::after{content:'';position:absolute;left:19%;top:14%;width:33%;height:15%;border-radius:50%;background:#fff;transform:rotate(-30deg)}
+.growth-drops i:nth-of-type(1){width:13px;height:14px}.growth-drops i:nth-of-type(2){width:19px;height:20px}.growth-drops i:nth-of-type(3){width:25px;height:26px}.growth-drops i:nth-of-type(4){width:32px;height:32px}
+.growth-drops b{font-size:13px;font-weight:400;color:#608c9d}
+canvas#game{cursor:pointer}
+@media(max-width:420px){.growth-guide{gap:9px;font-size:10px}.growth-drops{gap:5px}}
+</style></head>
+<body><div class="app">
+<header class="top"><div class="brand"><div class="brand-icon" aria-hidden="true"><svg viewBox="0 0 36 42"><defs><linearGradient id="drop-logo" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#efffff"/><stop offset=".35" stop-color="#6eeaff"/><stop offset="1" stop-color="#0787bd"/></linearGradient></defs><path d="M18 2C14.5 10 5 19 5 27a13 13 0 0 0 26 0C31 19 21 9 18 2Z" fill="url(#drop-logo)"/></svg></div><div><div class="brand-title">DUANG<span>!</span></div><div class="brand-sub">十滴挑战 · 每一滴，都有后手</div></div></div><button id="sound" class="sound-btn" aria-pressed="true">♫ 音效开</button></header>
+<main class="panel">
+<div class="heading"><div><h2 id="level-name"></h2><p id="level-desc"></p></div><div class="level-tag" id="level-tag"></div></div>
+<div class="journey" id="journey" aria-label="闯关进度"></div>
+<div class="stats"><div class="stat" id="bank-stat"><div class="stat-label">可用水量</div><div class="stat-value accent"><span id="bank">10</span><em>滴</em></div></div><div class="stat"><div class="stat-label">本局积分</div><div class="stat-value"><span id="score">0</span></div></div><div class="stat"><div class="stat-label">剩余水珠</div><div class="stat-value"><span id="remain">0</span><em>颗</em></div></div></div>
+<div class="bank-meter" id="bank-meter" aria-hidden="true"></div>
+<div class="board-wrap"><canvas id="game" width="660" height="660" tabindex="0" aria-label="六乘六水滴棋盘。点击水珠加水；键盘方向键移动，空格或回车加水。"></canvas><div id="overlay" class="overlay" role="status" aria-live="polite"><div class="result"><div class="result-mark" id="result-mark">✦</div><h3 id="result-title"></h3><p id="result-detail"></p><div class="result-buttons"><button id="retry-result">撤回最后一滴</button><button id="next-result" class="go">下一关 →</button></div></div></div></div>
+<div class="hint-strip" aria-live="polite"><span id="feedback"></span><span id="chain-stat">连爆 0</span></div>
+<div class="actions"><button id="undo" class="action">↶ 撤回 · 余 3 次</button><button id="reset" class="action">↻ 重新挑战</button><button id="next" class="action primary" disabled>清盘后继续 →</button></div>
+<div class="meta-row"><span id="round-stats"></span><span id="record"></span></div>
+<div class="growth-guide" aria-label="水珠从小到大分为四级，最饱满时再加水就爆开"><span>越喂越鼓</span><div class="growth-drops" aria-hidden="true"><i></i><b>›</b><i></i><b>›</b><i></i><b>›</b><i></i></div><span>再一滴，就啵！</span></div>
+<details class="rules"><summary>怎么玩 · 开局十滴，连爆续命</summary><ol class="rule-list"><li>开局 <strong>10 滴水</strong>，点击一颗水珠消耗 1 滴。空格不耗水。</li><li>看大小就知道：<strong>小小的 → 圆滚滚 → 鼓鼓的 → 满到晃</strong>。最饱满的水珠再吸收一滴就爆开。</li><li>爆裂向上下左右各射出一颗水弹。水弹穿过空格，遇到第一颗水珠后被吸收。</li><li><strong>一次点击连爆每满 3 颗，返还 1 滴</strong>；清盘再补 1 滴。剩余水量带入下一关。</li><li>连锁全部结束后结算；水量耗尽且未清盘，挑战结束。全局只有 <strong>3 次撤回</strong>，撤回同时收回该次得分和奖励。</li></ol><p class="rule-note">每颗爆裂 +100 分；同次第 2 颗起每颗再 +25 分；过关 +300 分。同一节拍多颗水弹命中时一起结算，一颗水珠最多爆裂一次。</p><p class="rule-note">方向键选择格子，回车 / 空格加水。共 20 关，进度自动保存在当前浏览器；重新挑战从 10 滴开始。</p></details>
+</main><footer>先蓄水，再引爆。让一滴水，替你走得更远。<br>DUANG! · 经典连锁规则，自制关卡</footer></div>
+<div id="restart-dialog" class="dialog" role="dialog" aria-modal="true" aria-labelledby="restart-title"><div class="dialog-card"><h2 id="restart-title">重新从十滴水开始？</h2><p>当前挑战进度将重置。你的历史最高纪录会保留。</p><div class="result-buttons"><button id="cancel-restart">继续这局</button><button class="go" id="confirm-restart">重新挑战</button></div></div></div>
+<div class="toast" id="toast" role="status"></div>
+<script>'use strict';
+const N = 6;
+const dirs = [[-1, 0], [1, 0], [0, -1], [0, 1]];
+function simulate(input, index, capture = false) {
+  const board = input.slice();
+  if (!Number.isInteger(index) || index < 0 || index >= 36 || !board[index]) return null;
+  let shots = [], bursts = 0;
+  const frames = [];
+  const spawn = (j) => {
+    bursts++;
+    for (const [dr, dc] of dirs) shots.push({ r: Math.floor(j / N), c: j % N, dr, dc });
+  };
+  const initialBurst = board[index] === 4;
+  if (initialBurst) { board[index] = 0; spawn(index); } else board[index]++;
+  const initial = capture ? { board: board.slice(), shots: shots.slice(), pops: initialBurst ? [index] : [], hits: [index] } : null;
+  let ticks = 0;
+  while (shots.length) {
+    if (++ticks > 500) throw new Error('Chain did not settle');
+    const impacts = new Map(), flying = [], pops = [], hits = [];
+    for (const p of shots) {
+      const r = p.r + p.dr, c = p.c + p.dc;
+      if (r < 0 || r >= N || c < 0 || c >= N) continue;
+      const j = r * N + c;
+      if (board[j]) impacts.set(j, (impacts.get(j) || 0) + 1);
+      else flying.push({ r, c, dr: p.dr, dc: p.dc });
+    }
+    shots = flying;
+    for (const [j, hitsCount] of [...impacts].sort((a,b) => a[0] - b[0])) {
+      hits.push(j);
+      if (board[j] + hitsCount >= 5) { board[j] = 0; pops.push(j); spawn(j); }
+      else board[j] += hitsCount;
+    }
+    if (capture) frames.push({ board: board.slice(), shots: shots.slice(), pops, hits });
+  }
+  return { board, bursts, reward: Math.floor(bursts / 3), cleared: board.every(v => v === 0), initial, frames };
+}
+function rng(seed) { let a = seed >>> 0; return () => { a += 0x6D2B79F5; let t = a; t = Math.imul(t ^ t >>> 15, t | 1); t ^= t + Math.imul(t ^ t >>> 7, t | 61); return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function transform(board, variant) {
+  const out = Array(36).fill(0);
+  board.forEach((v, i) => {
+    let r = Math.floor(i / 6), c = i % 6;
+    if (variant & 4) c = 5 - c;
+    for (let k = 0; k < (variant & 3); k++) [r, c] = [c, 5 - r];
+    out[r * 6 + c] = v;
+  });
+  return out;
+}
+function makeRun(levels, seed) {
+  return { version: 2, seed: seed >>> 0, level: 0, board: transform(levels[0].board, (seed >>> 0) % 8), bank: 10, score: 0, totalUsed: 0, roundUsed: 0, roundReward: 0, bestChain: 0, lastChain: 0, status: 'playing', undoTokens: 3, undo: null };
+}
+function play(state, index, capture = false) {
+  if (state.status !== 'playing' || state.bank <= 0) return null;
+  const result = simulate(state.board, index, capture);
+  if (!result) return null;
+  const undo = { ...state, board: state.board.slice(), undo: null };
+  const bank = state.bank - 1 + result.reward + (result.cleared ? 1 : 0);
+  const next = { ...state, board: result.board, bank, score: state.score + result.bursts * 100 + Math.max(0, result.bursts - 1) * 25 + (result.cleared ? 300 : 0), totalUsed: state.totalUsed + 1, roundUsed: state.roundUsed + 1, roundReward: state.roundReward + result.reward, bestChain: Math.max(state.bestChain, result.bursts), lastChain: result.bursts, status: result.cleared ? 'cleared' : bank > 0 ? 'playing' : 'lost', undo };
+  return { state: next, result };
+}
+function undoMove(state) { return state.undo && state.undoTokens > 0 ? { ...state.undo, undoTokens: state.undoTokens - 1, undo: null } : null; }
+function advance(state, levels) {
+  if (state.status !== 'cleared') return state;
+  if (state.level === levels.length - 1) return { ...state, status: 'complete', undo: null };
+  const level = state.level + 1;
+  const variant = ((state.seed >>> 0) + level * 3) % 8;
+  return { ...state, level, board: transform(levels[level].board, variant), roundUsed: 0, roundReward: 0, lastChain: 0, status: 'playing', undo: null };
+}
+function validState(s, levels) {
+  return !!s && s.version === 2 && Number.isInteger(s.seed) && Number.isInteger(s.level) && s.level >= 0 && s.level < levels.length && Array.isArray(s.board) && s.board.length === 36 && s.board.every(x => Number.isInteger(x) && x >= 0 && x <= 4) && ['bank','score','totalUsed','roundUsed','roundReward','bestChain','lastChain','undoTokens'].every(k => Number.isInteger(s[k]) && s[k] >= 0) && s.undoTokens <= 3 && ['playing','cleared','lost','complete'].includes(s.status) && (s.status !== 'playing' || s.bank > 0 && s.board.some(Boolean)) && (s.status !== 'lost' || s.bank === 0 && s.board.some(Boolean)) && (!['cleared','complete'].includes(s.status) || s.board.every(x => x === 0)) && (!s.undo || validState({ ...s.undo, undo: null }, levels));
+}
+const DuangEngine = { N, simulate, rng, transform, makeRun, play, undoMove, advance, validState };
+if (typeof module !== 'undefined' && module.exports) module.exports = DuangEngine;
+else globalThis.DuangEngine = DuangEngine;
+</script><script>globalThis.DuangLevels=[{"name":"蓄势待发","board":[0,2,0,0,0,4,0,0,0,4,4,3,0,3,1,0,0,0,0,4,3,4,2,4,3,0,3,2,2,0,3,4,3,0,3,0]},{"name":"交叉接力","board":[3,0,4,0,0,2,3,4,4,3,4,2,4,0,3,3,4,0,4,0,4,3,0,0,0,0,0,1,1,2,0,0,2,0,0,0]},{"name":"先小后大","board":[4,0,0,4,3,2,3,0,0,3,4,2,2,4,2,4,0,0,0,4,0,1,0,4,2,0,0,0,1,3,4,0,0,4,0,3]},{"name":"隔空引爆","board":[0,4,2,3,4,0,4,0,3,4,0,0,0,0,4,3,0,4,0,0,0,1,2,0,3,2,4,0,2,2,4,4,2,0,0,0]},{"name":"借力成潮","board":[2,0,4,3,0,4,4,0,0,0,0,3,0,4,0,0,0,1,0,2,0,3,4,3,0,4,0,0,2,0,0,1,2,3,0,3]},{"name":"分路蓄水","board":[0,0,4,0,4,3,0,3,0,4,0,2,2,1,0,3,0,3,0,0,3,0,0,0,4,4,0,0,0,2,1,3,3,3,0,3]},{"name":"错峰爆破","board":[0,0,0,0,0,4,0,4,4,3,0,4,2,3,0,0,0,3,4,0,0,1,4,4,2,2,0,1,3,3,0,3,0,3,0,0]},{"name":"连成一线","board":[2,0,0,3,0,1,0,3,0,0,3,3,4,3,4,3,0,4,0,0,2,2,0,0,1,1,2,0,0,0,0,4,4,4,4,4]},{"name":"孤珠难留","board":[0,0,0,4,4,3,0,0,4,4,0,1,0,4,0,2,1,3,0,0,3,2,0,0,2,4,4,0,0,2,0,4,4,0,3,0]},{"name":"中场决策","board":[4,0,2,1,0,4,3,4,3,2,4,3,4,0,0,0,0,0,2,3,0,3,0,2,4,0,0,1,3,0,4,0,0,0,1,4]},{"name":"以退为进","board":[3,0,0,0,2,0,0,0,4,3,0,0,1,4,4,0,1,4,0,0,2,3,3,0,4,1,1,4,4,0,2,3,0,2,0,3]},{"name":"四方呼应","board":[3,3,0,3,2,4,3,1,0,0,0,3,0,4,0,0,0,0,0,2,0,2,0,1,0,3,4,3,2,0,0,4,4,4,0,0]},{"name":"先后之间","board":[4,0,2,0,0,4,0,0,4,0,4,0,0,3,4,0,1,0,0,3,3,0,2,2,0,0,0,0,0,1,2,3,4,2,0,2]},{"name":"破局一滴","board":[0,4,0,0,0,4,1,0,0,0,0,0,4,0,2,0,4,0,1,4,3,4,4,1,0,0,3,2,0,0,4,3,4,1,1,1]},{"name":"余波未尽","board":[0,4,0,3,4,0,0,2,0,4,0,4,2,3,0,0,4,0,2,4,3,0,3,0,0,0,2,0,2,2,0,0,0,0,0,2]},{"name":"水量博弈","board":[4,0,0,0,4,0,3,0,0,0,0,4,4,0,0,3,0,2,4,0,3,1,3,0,4,0,1,0,2,4,0,1,3,3,0,3]},{"name":"双线合流","board":[0,0,0,1,2,0,3,0,3,0,2,0,2,4,0,3,0,0,4,3,3,0,0,3,0,2,3,0,2,3,3,2,3,0,3,0]},{"name":"留有后手","board":[4,1,0,0,3,2,2,0,4,3,1,0,4,0,0,2,0,0,0,2,1,4,4,0,1,3,3,0,0,0,0,0,0,4,3,3]},{"name":"滴水必争","board":[1,3,0,0,0,0,3,2,4,0,1,4,4,0,0,4,2,4,0,4,0,3,0,0,4,0,0,2,2,0,0,0,0,3,3,2]},{"name":"最后一潮","board":[0,0,4,0,2,1,4,4,3,2,3,4,0,3,1,0,0,4,1,0,3,0,0,0,3,3,0,2,0,0,0,3,0,3,4,0]}];</script><script>(() => {
+  'use strict';
+  const E=globalThis.DuangEngine, levels=globalThis.DuangLevels;
+  const N=6, W=660, M=30, SIDE=W-2*M, CELL=SIDE/N;
+  const $=id=>document.getElementById(id), canvas=$('game'), ctx=canvas.getContext('2d');
+  const SAVE='duang-ten-drops-v2', RECORD='duang-ten-record-v2';
+  let board=[],projectile=[],animating=false,progress=0,ripple=[],sparkle=[],bursts=[],pulse=new Map(),hover=-1,chain=0,lastFrame=0;
+  let soundOn=true,audio=null,frameQueue=[],frameIndex=0,displayBank=10,displayScore=0,toastTimer,selected=14;
+  let feedback='先观察，再落下第一滴。',record={cleared:0,score:0,chain:0},state;
+  const reducedMotion=!!(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  const count=()=>board.reduce((n,v)=>n+(v>0),0);
+  const center=(r,c)=>({x:M+(c+.5)*CELL,y:M+(r+.5)*CELL});
+  const rnd=(a,b)=>a+Math.random()*(b-a);
+  try { const s=JSON.parse(localStorage.getItem(SAVE)); if(E.validState(s,levels))state=s; const r=JSON.parse(localStorage.getItem(RECORD));if(r&&['cleared','score','chain'].every(k=>Number.isInteger(r[k])&&r[k]>=0))record=r;soundOn=localStorage.getItem('duang-sound')!=='off'; } catch(_){}
+  if(!state)state=E.makeRun(levels,(Math.random()*4294967296)>>>0);
+  else feedback='已接上你的上次进度。';
+  function save(){ try{localStorage.setItem(SAVE,JSON.stringify(state));}catch(_){feedback='当前浏览器无法保存进度，本局仍可继续。';} }
+  function commitRecord(){
+    const cleared=state.level+(state.status==='cleared'||state.status==='complete'?1:0);
+    record={cleared:Math.max(record.cleared,cleared),score:Math.max(record.score,state.score),chain:Math.max(record.chain,state.bestChain)};
+    try{localStorage.setItem(RECORD,JSON.stringify(record));}catch(_){}
+  }
+  function toast(text){$('toast').textContent=text;$('toast').classList.add('visible');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').classList.remove('visible'),2400);}
+  function updateHUD(){
+    const chapter=state.level<4?'蓄水篇':state.level<10?'接力篇':state.level<16?'博弈篇':'极限篇';
+    const tips=['先给小水珠蓄水，再让爆裂替你完成接力。','谁先爆开，会改变下一颗水弹的去向。','别急着引爆大水珠，先想想最后会剩下谁。','把水量留给孤立的小水珠，让连锁处理其余部分。'];
+    $('level-name').textContent=String(state.level+1).padStart(2,'0')+' · '+levels[state.level].name;
+    $('level-desc').textContent=tips[state.level<4?0:state.level<10?1:state.level<16?2:3];
+    $('level-tag').textContent=chapter+' '+(state.level+1)+'/20';
+    $('journey').innerHTML=levels.map((_,i)=>'<span class="'+(i<state.level?'done':i===state.level?'current':'')+'"></span>').join('');
+    $('journey').setAttribute('aria-label','第 '+(state.level+1)+' 关，共 20 关');
+    $('bank').textContent=displayBank;$('score').textContent=displayScore;$('remain').textContent=count();
+    $('bank-stat').classList.toggle('low',displayBank<=3);
+    const dots=Math.max(10,Math.min(displayBank,20));
+    $('bank-meter').innerHTML=Array.from({length:dots},(_,i)=>'<i class="bank-dot '+(i>=displayBank?'spent':'')+'"></i>').join('')+(displayBank>20?'<span class="bank-extra">+'+(displayBank-20)+'</span>':'');
+    $('feedback').textContent=animating?(displayBank===0?'最后一滴，等待连锁结算…':'连锁进行中，等待水弹落定…'):feedback;
+    $('chain-stat').textContent=(animating?'连爆 × ':'上次连爆 ')+(animating?chain:state.lastChain);
+    $('undo').textContent='↶ 撤回 · 余 '+state.undoTokens+' 次';
+    $('undo').disabled=animating||!state.undo||state.undoTokens<=0;
+    $('next').disabled=animating||state.status!=='cleared';
+    $('next').textContent=state.status==='cleared'?(state.level===19?'查看成绩 →':'下一关 →'):'清盘后继续 →';
+    $('reset').disabled=animating;
+    $('round-stats').textContent='本关用水 '+state.roundUsed+(animating?' · 奖励待结算':' · 连锁补水 +'+state.roundReward);
+    $('record').textContent='纪录 '+record.cleared+' 关 / '+record.score+' 分';
+    $('sound').textContent=soundOn?'♫ 音效开':'♪ 音效关';$('sound').setAttribute('aria-pressed',String(soundOn));
+    canvas.setAttribute('aria-label','六乘六水滴棋盘。剩余 '+count()+' 颗，可用 '+displayBank+' 滴。方向键移动，回车加水。');
+  }
+  function showResult(){
+    $('overlay').classList.remove('visible');
+    if(animating||state.status==='playing')return;
+    const cleared=state.status==='cleared',complete=state.status==='complete';
+    $('result-mark').textContent=complete?'✦':cleared?'＋1':'◇';
+    $('result-title').textContent=complete?'二十关，滴水不负':cleared?(state.level===19?'最后一关，清盘！':'清盘！水量继续带走'):'水量耗尽';
+    $('result-detail').textContent=complete?'总用水 '+state.totalUsed+' 滴 · 得分 '+state.score+' · 最大连爆 '+state.bestChain:cleared?'本关用水 '+state.roundUsed+' 滴，连锁返还 '+state.roundReward+' 滴，过关再补 1 滴。带着 '+state.bank+' 滴继续。':'已通过 '+state.level+' 关，得分 '+state.score+'。先蓄水再引爆，试着多赚几次连锁补给。';
+    const canUndo=state.undo&&state.undoTokens>0;
+    $('retry-result').hidden=!canUndo||complete;
+    $('retry-result').textContent='撤回最后一滴（余 '+state.undoTokens+'）';
+    $('next-result').textContent=cleared?(state.level===19?'查看最终成绩 →':'带着 '+state.bank+' 滴继续 →'):'重新挑战';
+    $('overlay').classList.add('visible');
+  }
+  function syncState(){board=state.board.slice();projectile=[];animating=false;progress=0;frameQueue=[];frameIndex=0;ripple=[];sparkle=[];bursts=[];pulse.clear();chain=0;displayBank=state.bank;displayScore=state.score;updateHUD();showResult();save();}
+  function applyVisual(frame){
+    const previousBoard=board,now=performance.now();
+    board=frame.board.slice();projectile=frame.shots.slice();
+    frame.hits.forEach(i=>{if(board[i])pulse.set(i,{t:now,from:previousBoard[i]});});
+    frame.pops.forEach(i=>{chain++;const p=center(Math.floor(i/N),i%N);bursts.push({...p,t:now});pulse.delete(i);emitRipples(Math.floor(i/N),i%N,true);});
+    if(frame.pops.length)note('burst',chain);else if(frame.hits.length)note('tap');
+  }
+  function settle(){
+    animating=false;progress=0;board=state.board.slice();projectile=[];displayBank=state.bank;displayScore=state.score;
+    const reward=Math.floor(state.lastChain/3);
+    feedback=state.status==='cleared'?'清盘补水 +1，剩余水量带入下一关。':reward?'连爆 '+state.lastChain+' 颗，返还 '+reward+' 滴水。':state.lastChain?'连爆未满 3 颗，这次没有补水。':'已蓄水。观察谁能接住下一次飞溅。';
+    if(state.status==='lost'&&state.undoTokens===0)commitRecord();
+    if(state.status==='cleared')note('win');
+    save();updateHUD();showResult();
+  }
+  function handleClick(index){
+    if(animating||state.status!=='playing'||$('restart-dialog').classList.contains('visible'))return;
+    if(!state.board[index]){toast('空格不耗水，选择一颗水珠加水。');return;}
+    const prev=state,move=E.play(state,index,true);if(!move)return;
+    state=move.state;save();displayBank=prev.bank-1;displayScore=prev.score;chain=0;progress=0;
+    frameQueue=move.result.frames;frameIndex=0;applyVisual(move.result.initial);
+    animating=frameQueue.length>0;updateHUD();if(!animating)settle();
+  }
+  function stepProjectiles(){
+    if(frameIndex<frameQueue.length)applyVisual(frameQueue[frameIndex++]);
+    if(frameIndex>=frameQueue.length)settle();else updateHUD();
+  }
+  function undo(){if(animating)return;const restored=E.undoMove(state);if(!restored)return;state=restored;feedback='已撤回一步，同时还原水量与得分。';syncState();}
+  function next(){if(animating||state.status!=='cleared')return;commitRecord();state=E.advance(state,levels);feedback='水量已带入新关。先想一想，再落下一滴。';syncState();}
+  function requestRestart(){if(animating)return;$('restart-dialog').classList.add('visible');$('cancel-restart').focus();}
+  function closeRestart(){$('restart-dialog').classList.remove('visible');$('reset').focus();}
+  function restart(){commitRecord();state=E.makeRun(levels,(Math.random()*4294967296)>>>0);closeRestart();feedback='新的十滴水。先观察，再落下第一滴。';syncState();}
+    function emitRipples(r,c,major=true){
+    const p=center(r,c), now=performance.now()+(major&&!reducedMotion?55:0);
+    ripple.push({x:p.x,y:p.y,t:now,life:major?510:330,major});
+    const total=reducedMotion?3:major?16:5;
+    for(let i=0;i<total;i++) {
+      let a=(Math.PI*2*i/total)+rnd(-.27,.27),v=rnd(35,major?152:75);
+      sparkle.push({x:p.x,y:p.y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,life:rnd(260,major?600:420),t:now,r:rnd(1.5,major?5:3.5),tint:i%3===0?'#eaffff':'#67dffe'});
+    }
+  }
+  function note(type,strength=1){
+    if(!soundOn)return;
+    try{
+      const A=window.AudioContext||window.webkitAudioContext;
+      if(!A)return;
+      if(!audio)audio=new A();
+      if(audio.state==='suspended')audio.resume();
+      const t=audio.currentTime;
+      let vol=type==='win'?.12:type==='burst'?.065:.038;
+      const pitch=type==='win'?660:type==='burst'?215:475;
+      const target=type==='win'?1040:type==='burst'?85:280;
+      const len=type==='win'?.47:type==='burst'?.24:.13;
+      const osc=audio.createOscillator(),g=audio.createGain();
+      osc.type='sine';
+      osc.frequency.setValueAtTime(pitch*(1+Math.min(.18,strength*.007)),t);
+      if(type==='burst'){
+        osc.frequency.exponentialRampToValueAtTime(105,t+.055);
+        osc.frequency.exponentialRampToValueAtTime(155,t+.095);
+        osc.frequency.exponentialRampToValueAtTime(target,t+len);
+      }else osc.frequency.exponentialRampToValueAtTime(target,t+len);
+      g.gain.setValueAtTime(.0001,t);
+      g.gain.exponentialRampToValueAtTime(vol,t+.008);
+      g.gain.exponentialRampToValueAtTime(.0001,t+len);
+      osc.connect(g);g.connect(audio.destination);osc.start(t);osc.stop(t+len+.01);
+      osc.onended=()=>{osc.disconnect();g.disconnect();};
+      if(type==='burst'){
+        const o=audio.createOscillator(),v=audio.createGain();o.type='sine';
+        o.frequency.setValueAtTime(85,t);o.frequency.exponentialRampToValueAtTime(50,t+.18);
+        v.gain.setValueAtTime(.0001,t);v.gain.exponentialRampToValueAtTime(.055,t+.008);v.gain.exponentialRampToValueAtTime(.0001,t+.19);
+        o.connect(v);v.connect(audio.destination);o.start(t);o.stop(t+.20);
+        o.onended=()=>{o.disconnect();v.disconnect();};
+      }
+    }catch(_){}
+  }
+
+    function roundedRect(x,y,w,h,r){ctx.beginPath();ctx.roundRect(x,y,w,h,r);}
+  function backdrop(t){
+    ctx.clearRect(0,0,W,W);
+    const g=ctx.createRadialGradient(W*.35,W*.20,30,W*.5,W*.5,W*.78);
+    g.addColorStop(0,'#23536b');g.addColorStop(.65,'#14394f');g.addColorStop(1,'#0b263b');
+    ctx.fillStyle=g;ctx.fillRect(0,0,W,W);
+    for(let r=0;r<N;r++)for(let c=0;c<N;c++){
+      const x=M+c*CELL+4,y=M+r*CELL+4;
+      roundedRect(x,y,CELL-8,CELL-8,19);
+      ctx.fillStyle=(r+c)%2===0?'rgba(151,223,246,.047)':'rgba(137,219,242,.025)';ctx.fill();
+      ctx.strokeStyle='rgba(170,227,246,.065)';ctx.lineWidth=1;ctx.stroke();
+    }
+    if(hover>=0&&!animating&&state.status==='playing'&&board[hover]>0){
+      const r=Math.floor(hover/N),c=hover%N;
+      roundedRect(M+c*CELL+4,M+r*CELL+4,CELL-8,CELL-8,19);
+      ctx.fillStyle='rgba(152,239,253,.07)';ctx.fill();
+      ctx.lineWidth=1.5;ctx.strokeStyle='rgba(166,238,253,.38)';ctx.stroke();
+    }
+  }
+  const RADII=[0,CELL*.177,CELL*.252,CELL*.333,CELL*.414];
+  function jellyPath(r,level){
+    // A soft pear becomes a round, full jelly. The lower belly is slightly flat.
+    const tip=level===1?1.13:level===2?1.04:.98;
+    ctx.beginPath();ctx.moveTo(-r*.12,-r*tip);
+    ctx.bezierCurveTo(r*.32,-r*(tip+.04),r*.97,-r*.65,r*.99,-r*.03);
+    ctx.bezierCurveTo(r*1.10,r*.64,r*.61,r*.97,0,r*.96);
+    ctx.bezierCurveTo(-r*.68,r*1.01,-r*1.07,r*.60,-r*.99,-r*.04);
+    ctx.bezierCurveTo(-r*.99,-r*.60,-r*.48,-r*.96,-r*.12,-r*tip);ctx.closePath();
+  }
+  function bubble(x,y,level,t,hit,options={}){
+    const age=hit?t-hit.t:Infinity,active=!reducedMotion&&age>=0&&age<760;
+    let r=RADII[level],deform=0;
+    if(active){
+      const u=Math.min(1,age/170),ease=1-Math.pow(1-u,3);
+      r=RADII[hit.from||level]+(r-RADII[hit.from||level])*ease;
+      deform=age<55?.29*Math.sin(age/55*Math.PI/2):.29*Math.cos((age-55)*.029)*Math.exp(-(age-55)/190);
+    }
+    const phase=x*.023+y*.017;
+    const breathe=reducedMotion||options.burst?0:Math.sin(t*.0027+phase)*(level===4?.021:.012);
+    let sx=1+breathe+deform,sy=1-breathe-deform*.76;
+    const lift=reducedMotion||options.burst?0:Math.sin(t*.0021+phase)*1.15-Math.max(0,-deform)*r*.2;
+    if(options.burst){sx=1+options.swell*.17;sy=1+options.swell*.20;}
+    const fade=options.opacity??1;
+    ctx.save();ctx.globalAlpha=fade;
+    // Ground contact and a wider soft shadow establish volume without neon glow.
+    const shadow=ctx.createRadialGradient(x,y+r*.90,1,x,y+r*.90,r*1.2);
+    shadow.addColorStop(0,'rgba(0,11,28,.45)');shadow.addColorStop(.5,'rgba(0,13,30,.19)');shadow.addColorStop(1,'rgba(0,13,30,0)');
+    ctx.save();ctx.translate(x,y+r*.90);ctx.scale(1,.30);ctx.translate(-x,-y-r*.90);
+    ctx.fillStyle=shadow;ctx.beginPath();ctx.arc(x,y+r*.90,r*1.2,0,Math.PI*2);ctx.fill();ctx.restore();
+    ctx.translate(x,y+lift);ctx.rotate(reducedMotion||options.burst?0:deform*.10);ctx.scale(sx,sy);
+    const body=ctx.createRadialGradient(-r*.36,-r*.48,r*.03,r*.05,r*.12,r*1.16);
+    body.addColorStop(0,'#efffff');body.addColorStop(.24,'#b4f6ff');body.addColorStop(.48,'#65dfed');body.addColorStop(.72,'#26bbd9');body.addColorStop(.90,'#087aa7');body.addColorStop(1,'#07426b');
+    jellyPath(r,level);ctx.fillStyle=body;ctx.fill();
+    ctx.save();jellyPath(r,level);ctx.clip();
+    const belly=ctx.createRadialGradient(r*.15,r*.57,0,0,r*.5,r*.91);
+    belly.addColorStop(0,'rgba(165,255,239,.70)');belly.addColorStop(.40,'rgba(103,255,235,.23)');belly.addColorStop(1,'rgba(46,223,235,0)');
+    ctx.fillStyle=belly;ctx.fillRect(-r,-r*1.2,r*2.2,r*2.4);
+    // Refracted light hugs the lower edge, leaving a dark blue body rim.
+    ctx.beginPath();ctx.ellipse(0,r*.05,r*.84,r*.78,0,.20*Math.PI,.83*Math.PI);
+    ctx.strokeStyle='rgba(192,255,244,.65)';ctx.lineWidth=r*.047;ctx.lineCap='round';ctx.stroke();
+    const dome=ctx.createLinearGradient(0,-r,0,-r*.05);dome.addColorStop(0,'rgba(255,255,255,.88)');dome.addColorStop(1,'rgba(234,255,255,0)');
+    ctx.beginPath();ctx.ellipse(-r*.22,-r*.54,r*.54,r*.29,-.38,0,Math.PI*2);ctx.fillStyle=dome;ctx.fill();
+    // Two crisp, asymmetric studio reflections.
+    ctx.beginPath();ctx.ellipse(-r*.40,-r*.58,r*.22,r*.10,-.52,0,Math.PI*2);ctx.fillStyle='#ffffffed';ctx.fill();
+    ctx.beginPath();ctx.ellipse(r*.49,-r*.32,r*.062,r*.15,-.4,0,Math.PI*2);ctx.fillStyle='#dfffffd9';ctx.fill();
+    ctx.restore();
+    jellyPath(r,level);ctx.lineWidth=Math.max(1,r*.031);ctx.strokeStyle='rgba(191,251,255,.65)';ctx.stroke();
+    // Tiny faces express squish, never replace the size-based state information.
+    const eyeY=r*.11,eyeX=r*.265;
+    const blink=!reducedMotion&&((t+phase*380)%4700)>4540;
+    const squeezed=options.burst||active&&age<85;
+    ctx.lineCap='round';ctx.lineWidth=Math.max(1.3,r*.062);ctx.strokeStyle='#13536b';ctx.fillStyle='#104c65';
+    for(const ex of [-eyeX,eyeX]){
+      if(blink||squeezed){ctx.beginPath();ctx.moveTo(ex-r*.07,eyeY);ctx.quadraticCurveTo(ex,eyeY-r*.07,ex+r*.07,eyeY);ctx.stroke();}
+      else{
+        ctx.beginPath();ctx.ellipse(ex,eyeY,r*.063,r*.096,0,0,Math.PI*2);ctx.fill();
+        ctx.beginPath();ctx.arc(ex-r*.016,eyeY-r*.035,Math.max(.55,r*.020),0,Math.PI*2);ctx.fillStyle='#e9ffff';ctx.fill();ctx.fillStyle='#104c65';
+      }
+    }
+    for(const sign of [-1,1]){
+      ctx.beginPath();ctx.ellipse(sign*r*.43,r*.25,r*.115,r*.064,sign*.16,0,Math.PI*2);ctx.fillStyle=level===4?'rgba(255,161,185,.58)':'rgba(255,181,196,.43)';ctx.fill();
+    }
+    ctx.strokeStyle='#15566b';ctx.lineWidth=Math.max(1.2,r*.046);ctx.beginPath();
+    if(level===4||squeezed){ctx.moveTo(-r*.085,r*.27);ctx.quadraticCurveTo(0,r*.41,r*.085,r*.27);}
+    else{ctx.moveTo(-r*.065,r*.28);ctx.quadraticCurveTo(0,r*.35,r*.065,r*.28);}
+    ctx.stroke();
+    ctx.restore();
+  }
+  function drawEffects(t){
+    bursts=bursts.filter(o=>t-o.t<100);
+    if(!reducedMotion)for(const o of bursts){
+      const age=t-o.t,u=Math.min(1,age/85);
+      bubble(o.x,o.y,4,t,null,{burst:true,swell:Math.sin(u*Math.PI/2),opacity:age<55?1:Math.max(0,1-(age-55)/45)});
+    }
+    ripple=ripple.filter(o=>t-o.t<o.life);
+    for(const o of ripple){
+      const u=(t-o.t)/o.life;if(u<0)continue;
+      ctx.beginPath();ctx.ellipse(o.x,o.y,9+u*(o.major?58:30),7+u*(o.major?51:25),0,0,Math.PI*2);
+      ctx.strokeStyle=`rgba(171,249,249,${(1-u)*.55})`;ctx.lineWidth=(o.major?3:2)*(1-u)+.3;ctx.stroke();
+      if(u<.23){ctx.globalAlpha=(1-u/.23)*.65;ctx.fillStyle='#efffff';ctx.beginPath();ctx.arc(o.x,o.y,7+u*10,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;}
+    }
+    sparkle=sparkle.filter(o=>t-o.t<o.life);
+    for(const o of sparkle){
+      if(t<o.t)continue;
+      const sec=(t-o.t)/1000,remain=1-(t-o.t)/o.life;
+      const x=o.x+o.vx*sec,y=o.y+o.vy*sec+85*sec*sec;
+      ctx.save();ctx.translate(x,y);ctx.rotate(Math.atan2(o.vy,o.vx));ctx.globalAlpha=Math.max(0,remain)*.83;
+      ctx.fillStyle=o.tint;ctx.beginPath();ctx.ellipse(0,0,o.r*Math.sqrt(remain)*1.28,o.r*Math.sqrt(remain)*.8,0,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='#f0ffff';ctx.beginPath();ctx.arc(-o.r*.2,-o.r*.2,o.r*.25*Math.sqrt(remain),0,Math.PI*2);ctx.fill();ctx.restore();
+    }
+  }
+  function drawShots(t){
+    for(const p of projectile){
+      const pos=center(p.r,p.c),x=pos.x+p.dc*CELL*progress,y=pos.y+p.dr*CELL*progress;
+      ctx.save();ctx.translate(x,y);ctx.rotate(Math.atan2(p.dr,p.dc));
+      const trail=ctx.createLinearGradient(-26,0,0,0);trail.addColorStop(0,'rgba(97,235,243,0)');trail.addColorStop(1,'rgba(149,255,247,.56)');
+      ctx.lineWidth=5;ctx.lineCap='round';ctx.strokeStyle=trail;ctx.beginPath();ctx.moveTo(-26,0);ctx.lineTo(0,0);ctx.stroke();
+      const g=ctx.createRadialGradient(-2,-2,1,0,0,10);g.addColorStop(0,'#faffff');g.addColorStop(.35,'#a8fff5');g.addColorStop(1,'#1ca2ca');
+      ctx.fillStyle=g;ctx.beginPath();ctx.ellipse(0,0,9,5.7,0,0,Math.PI*2);ctx.fill();ctx.restore();
+    }
+    if(animating&&chain>=2){
+      ctx.font='800 21px system-ui, sans-serif';ctx.textAlign='center';ctx.fillStyle='rgba(218,254,255,.88)';ctx.fillText('连爆 × '+chain,W/2,25);
+    }
+  }
+  function draw(t){
+    const shake=animating&&chain>=3&&!reducedMotion?Math.min(.8,chain*.04):0;
+    ctx.save();ctx.translate(shake*Math.sin(t*.12),shake*Math.sin(t*.147));backdrop(t);
+    for(let i=0;i<board.length;i++)if(board[i]>0){const p=center(Math.floor(i/N),i%N);bubble(p.x,p.y,board[i],t,pulse.get(i));}
+    drawEffects(t);drawShots(t);ctx.restore();
+  }
+  function frame(t){
+    if(!lastFrame)lastFrame=t;
+    const dt=Math.min(40,t-lastFrame);lastFrame=t;
+    if(animating){const period=reducedMotion?70:Math.max(72,124-chain*1.85);progress+=dt/period;if(progress>=1){progress=0;stepProjectiles();}}
+    draw(t);requestAnimationFrame(frame);
+  }
+
+  function onPointer(ev){const rect=canvas.getBoundingClientRect(),x=(ev.clientX-rect.left)*W/rect.width,y=(ev.clientY-rect.top)*W/rect.height,c=Math.floor((x-M)/CELL),r=Math.floor((y-M)/CELL);return c>=0&&c<N&&r>=0&&r<N?r*N+c:-1;}
+  canvas.addEventListener('pointermove',e=>{hover=onPointer(e);});canvas.addEventListener('pointerleave',()=>hover=-1);
+  canvas.addEventListener('pointerdown',e=>{if(e.pointerType!=='mouse')e.preventDefault();const i=onPointer(e);if(i>=0){selected=i;handleClick(i);}});
+  canvas.addEventListener('keydown',e=>{
+    if(!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Enter',' '].includes(e.key))return;e.preventDefault();
+    if(e.key==='Enter'||e.key===' ')handleClick(selected);
+    else {const row=Math.floor(selected/6),col=selected%6;selected=e.key==='ArrowLeft'?row*6+Math.max(0,col-1):e.key==='ArrowRight'?row*6+Math.min(5,col+1):e.key==='ArrowUp'?Math.max(0,row-1)*6+col:Math.min(5,row+1)*6+col;hover=selected;canvas.setAttribute('aria-label','第 '+(Math.floor(selected/6)+1)+' 行，第 '+(selected%6+1)+' 列，'+(board[selected]?board[selected]+' 级水珠':'空格'));}
+  });
+  $('undo').onclick=undo;$('reset').onclick=requestRestart;$('next').onclick=next;$('retry-result').onclick=undo;
+  $('next-result').onclick=()=>state.status==='cleared'?next():requestRestart();
+  $('cancel-restart').onclick=closeRestart;$('confirm-restart').onclick=restart;
+  $('sound').onclick=()=>{soundOn=!soundOn;try{localStorage.setItem('duang-sound',soundOn?'on':'off');}catch(_){}updateHUD();if(soundOn)note('tap');};
+  window.addEventListener('keydown',e=>{
+    if($('restart-dialog').classList.contains('visible')){if(e.key==='Escape')closeRestart();if(e.key==='Tab'){e.preventDefault();(document.activeElement===$('cancel-restart')?$('confirm-restart'):$('cancel-restart')).focus();}return;}
+    if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'){e.preventDefault();undo();}
+  });
+  function syncCanvas(){const dpr=Math.min(window.devicePixelRatio||1,2.5);canvas.width=Math.round(W*dpr);canvas.height=Math.round(W*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);}
+  syncCanvas();window.addEventListener('resize',syncCanvas);syncState();requestAnimationFrame(frame);
+})();
+</script>
+</body></html>
